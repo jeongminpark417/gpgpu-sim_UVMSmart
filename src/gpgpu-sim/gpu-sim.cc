@@ -3377,8 +3377,53 @@ void gmmu_t::cycle()
                 // if the memory fetch is not part of any request in the prefetch command buffer
 	         if ( iter == prefetch_req_buffer.end()) {
 
+		     //ECE511
+		     active_mask_t warp_mask = mf->get_mem_access().get_warp_mask();
+		     std::cout << "active mask: " << warp_mask << std::endl;
+		
+		     int s_static_threshold = 16;
+		     int t_static_threshold = 2;
+
+		     bool spatial_local_flag = false;
+		     if(warp_mask.count() >= s_static_threshold)
+			spatial_local_flag = true;
+
+		     bool temporal_local_flag = false;
+		     mem_addr_t addr = mf->get_mem_access().get_addr();
+		     struct lp_tree_node *root = m_gpu->getGmmu()->get_lp_node(addr);
+		     if(get_bb_access_counter(root, addr) >= 2)
+			temporal_local_flag = true;
+		
+
+		     if(!(spatial_local_flag | temporal_local_flag)){
+		
+			 m_new_stats->num_dma++;
+                         pcie_latency_t *p_t = new pcie_latency_t();
+
+                         mf->set_dma();
+
+                         p_t->mf = mf;
+                         p_t->type = latency_type::DMA;
+
+                         pcie_read_stage_queue.push_back(p_t);
+                
+		     }    
+		     else{
+			if ( dma_mode != dma_type::DISABLED && mf->get_mem_access().get_type() == GLOBAL_ACC_W) {
+		             m_new_stats->dma_page_transfer_write++;
+			 } 
+			else if( dma_mode != dma_type::DISABLED && mf->get_mem_access().get_type() == GLOBAL_ACC_R) {
+			     m_new_stats->dma_page_transfer_read++;
+			 }
+			 page_fault_this_turn[page_list.front()].push_back(mf);
+		     }		
+
+
+		     // Brian - code below should be removed or changed.
+	
+/*
 		     // if dma is enabled/it is a write access/read access counter hasn't reached thresold
-                     if ( !should_cause_page_migration(mf->get_mem_access().get_addr(), mf->get_mem_access().get_type() == GLOBAL_ACC_W) ) {
+                     else if ( !should_cause_page_migration(mf->get_mem_access().get_addr(), mf->get_mem_access().get_type() == GLOBAL_ACC_W) ) {
 			     
 		         m_new_stats->num_dma++;
                          pcie_latency_t *p_t = new pcie_latency_t();
@@ -3398,12 +3443,14 @@ void gmmu_t::cycle()
 
 			 page_fault_this_turn[page_list.front()].push_back(mf);
 		     }
+*/
 	         }
 	    }
         }
 
         page_table_walk_queue.pop_front();
     }
+
 
     // call hardware prefetcher based on the current page faults
     do_hardware_prefetch(page_fault_this_turn);
