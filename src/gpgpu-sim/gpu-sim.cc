@@ -3248,7 +3248,8 @@ void gmmu_t::cycle()
 	} else if (pcie_read_latency_queue->type == latency_type::PAGE_FAULT) { // processed far-fault is returned to upward queue
 
 	    if(sim_prof_enable) {
-               for(std::list<event_stats*>::iterator iter = fault_stats.begin(); iter != fault_stats.end(); iter++) {
+        	printf("sim prof enable\n");
+	       for(std::list<event_stats*>::iterator iter = fault_stats.begin(); iter != fault_stats.end(); iter++) {
                    if( ((page_fault_stats*)(*iter))->transfering_pages.front() == pcie_read_latency_queue->page_list.front() ) {
 		       event_stats* mf_fault = *iter;
 		       mf_fault->end_time = gpu_sim_cycle+gpu_tot_sim_cycle;
@@ -3355,8 +3356,12 @@ void gmmu_t::cycle()
 	    // the page request is already there in MSHR either as a page fault or as part of scheduled prefetch request
 	    if ( req_info.find( *(page_list.begin()) ) != req_info.end()) {
 		 m_new_stats->mf_page_fault_pending++;
+		 m_new_stats->mf_page_hit[simt_cluster_id]++;
+
 		 req_info[*(page_list.begin())].push_back(mf);
 	    } else {
+		m_new_stats->mf_page_miss[simt_cluster_id]++;	   
+ 
 
 	    	 // if the memory fetch is part of any requests in the prefetch command buffer
                  // then add it to the incoming replayable_nacks
@@ -3391,12 +3396,16 @@ void gmmu_t::cycle()
 		     bool temporal_local_flag = false;
 		     mem_addr_t addr = mf->get_mem_access().get_addr();
 		     struct lp_tree_node *root = m_gpu->getGmmu()->get_lp_node(addr);
-		     if(get_bb_access_counter(root, addr) >= 2)
+			std::cout << "counter val: " << get_bb_access_counter(root, addr) << std::endl;
+		     if(get_bb_access_counter(root, addr) >= 4)
 			temporal_local_flag = true;
 		
 
 		     if(!(spatial_local_flag | temporal_local_flag)){
-		
+			 
+			// if(spatial_local_flag == false) printf("no spatial\n");
+			 //if(temporal_local_flag == false) printf("no temporal\n");
+	
 			 m_new_stats->num_dma++;
                          pcie_latency_t *p_t = new pcie_latency_t();
 
@@ -3409,6 +3418,24 @@ void gmmu_t::cycle()
                 
 		     }    
 		     else{
+			//if(spatial_local_flag == true) printf("spatial locality\n");
+			//if(temporal_local_flag == true) printf("temporal locality\n");
+	
+	
+			pcie_latency_t* f_t = new pcie_latency_t();
+                        //:f_t->page_list.push_back(*pf_iter);
+                        f_t->type = latency_type::PAGE_FAULT;
+                        pcie_read_stage_queue.push_back(f_t);
+/*
+			pcie_latency_t* p_t = new pcie_latency_t();
+                    p_t->start_addr = m_gpu->get_global_memory()->get_mem_addr(all_pg_iter->front());
+                    p_t->page_list = std::list<mem_addr_t> (all_pg_iter->begin(), ++pg_iter);
+                    p_t->size = p_t->page_list.size() * m_config.page_size;
+	            p_t->type = latency_type::PCIE_READ;			
+ 
+	            pcie_read_stage_queue.push_back(p_t);
+*/
+	
 			if ( dma_mode != dma_type::DISABLED && mf->get_mem_access().get_type() == GLOBAL_ACC_W) {
 		             m_new_stats->dma_page_transfer_write++;
 			 } 
@@ -3453,6 +3480,7 @@ void gmmu_t::cycle()
 
 
     // call hardware prefetcher based on the current page faults
+
     do_hardware_prefetch(page_fault_this_turn);
    
     // fetch from cluster's cu to gmmu queue and push it into the page table way delay queue
@@ -3534,7 +3562,6 @@ void gmmu_t::cycle()
 	     do {
                     // get the page number for the current updated address
 		    mem_addr_t page_num = m_gpu->get_global_memory()->get_page_num(pre_q.cur_addr);
-
                     // update the current address by page size as we break a big chunk (2MB) 
                     // in the granularity of the smallest unit of page
 	            pre_q.cur_addr += m_config.page_size;
@@ -3550,7 +3577,7 @@ void gmmu_t::cycle()
 			 // break out of loop only when we have already scheduled some pages for transfer
                          // if not we will continue skipping valid pages if any until we find some invalid pages to transfer
                          if( !pre_q.pending_prefetch.empty() ) { 
-                             break;
+				break;
                      	 }    
 		    } else {
 
@@ -3604,7 +3631,7 @@ void gmmu_t::cycle()
 void gmmu_t::do_hardware_prefetch (std::map<mem_addr_t, std::list<mem_fetch*> > &page_fault_this_turn) {
     // now decide on transfers as a group of page faults and prefetches
     if ( !page_fault_this_turn.empty() ) {
-        unsigned long long num_pages_read_stage_queue = 0;
+	unsigned long long num_pages_read_stage_queue = 0;
 
         for ( std::list<pcie_latency_t*>::iterator iter = pcie_read_stage_queue.begin();
              iter != pcie_read_stage_queue.end(); iter++) {
@@ -3624,14 +3651,16 @@ void gmmu_t::do_hardware_prefetch (std::map<mem_addr_t, std::list<mem_fetch*> > 
                 temp_pages.push_back(it->first);
 
                 mem_addr_t page_addr = m_gpu->get_global_memory()->get_mem_addr(it->first);
-                struct lp_tree_node* root = get_lp_node(page_addr);
+                std::cout << "page addr: " << page_addr << std::endl;
+		
+		struct lp_tree_node* root = get_lp_node(page_addr);
                 update_basic_block(root, page_addr, m_config.page_size, true);
 
                 all_transfer_all_page.push_back(temp_pages);
                 all_transfer_faulty_pages.push_back(temp_pages);
 
                 temp_req_info[it->first];
-
+/*
 		if( prefetcher == hwardware_prefetcher::RANDOM ) {
                     struct lp_tree_node* root = get_lp_node(m_gpu->get_global_memory()->get_mem_addr(it->first));
 
@@ -3659,6 +3688,7 @@ void gmmu_t::do_hardware_prefetch (std::map<mem_addr_t, std::list<mem_fetch*> > 
 			temp_req_info[prefetch_page_num];
 		    }
 		}
+*/
             }
         } else {
             std::map<mem_addr_t, std::set<mem_addr_t> > lp_pf_groups;
@@ -3670,8 +3700,8 @@ void gmmu_t::do_hardware_prefetch (std::map<mem_addr_t, std::list<mem_fetch*> > 
 
                 lp_pf_groups[root->addr].insert(page_addr);
             }
-
-            for ( std::map<mem_addr_t, std::set<mem_addr_t> >::iterator lp_pf_iter = lp_pf_groups.begin(); lp_pf_iter != lp_pf_groups.end(); lp_pf_iter++ ) {
+            
+	    for ( std::map<mem_addr_t, std::set<mem_addr_t> >::iterator lp_pf_iter = lp_pf_groups.begin(); lp_pf_iter != lp_pf_groups.end(); lp_pf_iter++ ) {
                 std::set<mem_addr_t> schedulable_basic_blocks;
 
                 // list of all invalid pages and pages with fault from all basic blocks to satisfy current transfer size
@@ -3692,7 +3722,7 @@ void gmmu_t::do_hardware_prefetch (std::map<mem_addr_t, std::list<mem_fetch*> > 
 
                 if ( prefetcher == hwardware_prefetcher::TBN ) {
                     struct lp_tree_node* root = get_lp_node(lp_pf_iter->first);
-                    traverse_and_fill_lp_tree(root, schedulable_basic_blocks);
+			traverse_and_fill_lp_tree(root, schedulable_basic_blocks);		
                 }
 
                 for (std::set<mem_addr_t>::iterator bb = schedulable_basic_blocks.begin(); bb != schedulable_basic_blocks.end(); bb++) {
@@ -3731,7 +3761,6 @@ void gmmu_t::do_hardware_prefetch (std::map<mem_addr_t, std::list<mem_fetch*> > 
             std::list<mem_addr_t>::iterator pg_iter =  all_pg_iter->begin();
 
             std::list<mem_addr_t>::iterator prev_pg_iter;
-
             while ( pg_iter != all_pg_iter->end() ) {
 
                 // if there is a gap between current and last page
@@ -3761,7 +3790,7 @@ void gmmu_t::do_hardware_prefetch (std::map<mem_addr_t, std::list<mem_fetch*> > 
                 // we found a page on which a page fault request is pending
                 // now we split upto this and create a memory transfer 
                 if ( (pf_iter != all_pf_iter->end()) && ((*pf_iter) == (*pg_iter)) ) {
-
+			printf("pending\n");
 	            if( m_config.enable_accurate_simulation ) {
 			pcie_latency_t* f_t = new pcie_latency_t();
                         f_t->page_list.push_back(*pf_iter);
@@ -3785,7 +3814,8 @@ void gmmu_t::do_hardware_prefetch (std::map<mem_addr_t, std::list<mem_fetch*> > 
                     pg_iter++;
                 }
             }
-
+	
+/*	
             // prefetch the remaining from the 64K basic block
             if ( !all_pg_iter->empty() ) {
                 pcie_latency_t* p_t = new pcie_latency_t();
@@ -3796,6 +3826,7 @@ void gmmu_t::do_hardware_prefetch (std::map<mem_addr_t, std::list<mem_fetch*> > 
 
                 pcie_read_stage_queue.push_back(p_t);
             }
+*/
 	}
 
         // adding statistics for prefetch
@@ -3807,6 +3838,7 @@ void gmmu_t::do_hardware_prefetch (std::map<mem_addr_t, std::list<mem_fetch*> > 
             
 	    m_new_stats->mf_page_fault_outstanding++;
             m_new_stats->mf_page_fault_pending += req_info[iter2->first].size() - 1;
+		printf("page fault pending: %i\n",req_info[iter2->first].size() - 1); 
 
             m_new_stats->mf_page_fault_latency[iter2->first].push_back(gpu_sim_cycle+gpu_tot_sim_cycle); 
 	}

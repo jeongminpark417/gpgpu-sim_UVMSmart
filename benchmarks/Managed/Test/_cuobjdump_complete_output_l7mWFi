@@ -1,0 +1,285 @@
+
+Fatbin elf code:
+================
+arch = sm_20
+code version = [1,7]
+producer = <unknown>
+host = linux
+compile_size = 64bit
+
+64bit elf: type=2, abi=7, sm=20, toolkit=80, flags = 0x140514
+Sections:
+Index Offset   Size ES Align   Type   Flags Link     Info Name
+    1     40     32  0  1    STRTAB       0    0        0 .shstrtab
+    2     72     32  0  1    STRTAB       0    0        0 .strtab
+    3     a8     18 18  8    SYMTAB       0    2        0 .symtab
+
+.section .strtab
+
+.section .shstrtab
+
+.section .symtab
+ index           value           size      info    other  shndx    name  
+   0               0               0        0        0      0     (null)
+
+	code for sm_20
+
+Fatbin elf code:
+================
+arch = sm_20
+code version = [1,7]
+producer = cuda
+host = linux
+compile_size = 64bit
+
+64bit elf: type=2, abi=7, sm=20, toolkit=80, flags = 0x140514
+Sections:
+Index Offset   Size ES Align   Type   Flags Link     Info Name
+    1     40     aa  0  1    STRTAB       0    0        0 .shstrtab
+    2     ea     c5  0  1    STRTAB       0    0        0 .strtab
+    3    1b0     60 18  8    SYMTAB       0    2        2 .symtab
+    4    210     24  0  4 CUDA_INFO       0    3        0 .nv.info
+    5    234     38  0  4 CUDA_INFO       0    3        7 .nv.info._Z11Test_kernelPfS_
+    6    26c     30  0  4  PROGBITS       2    0        7 .nv.constant0._Z11Test_kernelPfS_
+    7    29c    170  0  4  PROGBITS       6    3  7000003 .text._Z11Test_kernelPfS_
+
+.section .strtab
+
+.section .shstrtab
+
+.section .symtab
+ index           value           size      info    other  shndx    name  
+   0               0               0        0        0      0     (null)
+   1               0               0        3        0      7     .text._Z11Test_kernelPfS_
+   2               0               0        3        0      6     .nv.constant0._Z11Test_kernelPfS_
+   3               0             368       12       10      7     _Z11Test_kernelPfS_
+
+
+.nv.constant0._Z11Test_kernelPfS_
+0x00000000  0x00000000  0x00000000  0x00000000  0x00000000  
+0x00000000  0x00000000  0x00000000  0x00000000  
+0x00000000  0x00000000  0x00000000  
+
+
+.nv.info
+	<0x1>
+	Attribute:	EIATTR_MAX_STACK_SIZE
+	Format:	EIFMT_SVAL
+	Value:	0x3 0x0 
+	<0x2>
+	Attribute:	EIATTR_MIN_STACK_SIZE
+	Format:	EIFMT_SVAL
+	Value:	function: _Z11Test_kernelPfS_(0x3)	min stack size: 0x0
+	<0x3>
+	Attribute:	EIATTR_FRAME_SIZE
+	Format:	EIFMT_SVAL
+	Value:	function: _Z11Test_kernelPfS_(0x3)	frame size: 0x0
+
+
+.nv.info._Z11Test_kernelPfS_
+	<0x1>
+	Attribute:	EIATTR_PARAM_CBANK
+	Format:	EIFMT_SVAL
+	Value:	0x2 0x100020 
+	<0x2>
+	Attribute:	EIATTR_CBANK_PARAM_SIZE
+	Format:	EIFMT_HVAL
+	Value:	0x10
+	<0x3>
+	Attribute:	EIATTR_KPARAM_INFO
+	Format:	EIFMT_SVAL
+	Value:	Index : 0x0	Ordinal : 0x1	Offset  : 0x8	Size    : 0x8
+		Pointee's logAlignment : 0x0	Space : 0x0	cbank : 0x1f	Parameter Space : CBANK	
+	<0x4>
+	Attribute:	EIATTR_KPARAM_INFO
+	Format:	EIFMT_SVAL
+	Value:	Index : 0x0	Ordinal : 0x0	Offset  : 0x0	Size    : 0x8
+		Pointee's logAlignment : 0x0	Space : 0x0	cbank : 0x1f	Parameter Space : CBANK	
+	<0x5>
+	Attribute:	EIATTR_CRS_STACK_SIZE
+	Format:	EIFMT_SVAL
+	Value:	0x18c 
+
+
+.text._Z11Test_kernelPfS_
+bar = 0	reg = 7	lmem=0	smem=0
+0x00005de4  0x28004404  0x94001c04  0x2c000000  
+0x84009c04  0x2c000000  0x1000dde2  0x18000000  
+0x20000007  0x60000003  0x20001ca3  0x20044000  
+0x80009ca3  0x20078000  0x9000dce3  0x20868000  
+0x00215c85  0x84000000  0x10211c85  0x84000000  
+0x15215c84  0x14060000  0x11219c84  0x14060000  
+0x1851dc23  0x188e0000  0x000021e7  0x40000001  
+0x14011de4  0x28000000  0x18015de4  0x28000000  
+0x04419c03  0x4800c000  0x10515c43  0x68000000  
+0x18011de4  0x28000000  0x1461dc23  0x188e0000  
+0x600001e7  0x4003ffff  0xe0001de7  0x40000000  
+0x1461dc23  0x1b0e0000  0xa00001e7  0x40000000  
+0x18011de4  0x28000000  0x04619c03  0x4800c000  
+0x10515c43  0x68000000  0x1461dc23  0x188e0000  
+0x600001e7  0x4003ffff  0x00001df4  0x40000000  
+0x00211c85  0x84000500  0x19219e04  0x18000000  
+0x15215e04  0x18000000  0x1020dc85  0x84000500  
+0x10609c00  0x50000000  0x0c50dc00  0x50000000  
+0x10015de2  0x18000000  0x0c209c00  0x50000000  
+0xa0011c03  0x200b8000  0x09209c84  0x14060000  
+0xb0015ce3  0x208a8000  0x93f0dc23  0x3284c001  
+0x08309c03  0x48000000  0x09201e04  0x18000000  
+0x00401c85  0x94000000  0x00001de7  0x80000000  
+
+
+	code for sm_20
+		Function : _Z11Test_kernelPfS_
+	.headerflags    @"EF_CUDA_SM20 EF_CUDA_PTX_SM(EF_CUDA_SM20)"
+        /*0000*/         MOV R1, c[0x1][0x100];                     /* 0x2800440400005de4 */
+        /*0008*/         S2R R0, SR_CTAID.X;                        /* 0x2c00000094001c04 */
+        /*0010*/         S2R R2, SR_TID.X;                          /* 0x2c00000084009c04 */
+        /*0018*/         MOV32I R3, 0x4;                            /* 0x180000001000dde2 */
+        /*0020*/         SSY 0xf0;                                  /* 0x6000000320000007 */
+        /*0028*/         IMAD R0, R0, c[0x0][0x8], R2;              /* 0x2004400020001ca3 */
+        /*0030*/         IMAD R2.CC, R0, R3, c[0x0][0x20];          /* 0x2007800080009ca3 */
+        /*0038*/         IMAD.HI.X R3, R0, R3, c[0x0][0x24];        /* 0x208680009000dce3 */
+        /*0040*/         LD.E R5, [R2];                             /* 0x8400000000215c85 */
+        /*0048*/         LD.E R4, [R2+0x4];                         /* 0x8400000010211c85 */
+        /*0050*/         F2I.S32.F32.TRUNC R5, R5;                  /* 0x1406000015215c84 */
+        /*0058*/         F2I.S32.F32.TRUNC R6, R4;                  /* 0x1406000011219c84 */
+        /*0060*/         ISETP.LT.AND P0, PT, R5, R6, PT;           /* 0x188e00001851dc23 */
+        /*0068*/    @!P0 BRA 0xb0;                                  /* 0x40000001000021e7 */
+        /*0070*/         MOV R4, R5;                                /* 0x2800000014011de4 */
+        /*0078*/         MOV R5, R6;                                /* 0x2800000018015de4 */
+        /*0080*/         IADD R6, R4, 0x1;                          /* 0x4800c00004419c03 */
+        /*0088*/         LOP.OR R5, R5, R4;                         /* 0x6800000010515c43 */
+        /*0090*/         MOV R4, R6;                                /* 0x2800000018011de4 */
+        /*0098*/         ISETP.LT.AND P0, PT, R6, R5, PT;           /* 0x188e00001461dc23 */
+        /*00a0*/     @P0 BRA 0x80;                                  /* 0x4003ffff600001e7 */
+        /*00a8*/         BRA 0xe8;                                  /* 0x40000000e0001de7 */
+        /*00b0*/         ISETP.GE.AND P0, PT, R6, R5, PT;           /* 0x1b0e00001461dc23 */
+        /*00b8*/     @P0 BRA 0xe8;                                  /* 0x40000000a00001e7 */
+        /*00c0*/         MOV R4, R6;                                /* 0x2800000018011de4 */
+        /*00c8*/         IADD R6, R6, 0x1;                          /* 0x4800c00004619c03 */
+        /*00d0*/         LOP.OR R5, R5, R4;                         /* 0x6800000010515c43 */
+        /*00d8*/         ISETP.LT.AND P0, PT, R6, R5, PT;           /* 0x188e00001461dc23 */
+        /*00e0*/     @P0 BRA 0xc0;                                  /* 0x4003ffff600001e7 */
+        /*00e8*/         NOP.S;                                     /* 0x4000000000001df4 */
+        /*00f0*/         LD.E R4, [R2+0x14000];                     /* 0x8400050000211c85 */
+        /*00f8*/         I2F.F32.S32 R6, R6;                        /* 0x1800000019219e04 */
+        /*0100*/         I2F.F32.S32 R5, R5;                        /* 0x1800000015215e04 */
+        /*0108*/         LD.E R3, [R2+0x14004];                     /* 0x840005001020dc85 */
+        /*0110*/         FADD R2, R6, R4;                           /* 0x5000000010609c00 */
+        /*0118*/         FADD R3, R5, R3;                           /* 0x500000000c50dc00 */
+        /*0120*/         MOV32I R5, 0x4;                            /* 0x1800000010015de2 */
+        /*0128*/         FADD R2, R2, R3;                           /* 0x500000000c209c00 */
+        /*0130*/         IMAD.U32.U32 R4.CC, R0, R5, c[0x0][0x28];  /* 0x200b8000a0011c03 */
+        /*0138*/         F2I.S32.F32.TRUNC R2, R2;                  /* 0x1406000009209c84 */
+        /*0140*/         IMAD.HI.X R5, R0, R5, c[0x0][0x2c];        /* 0x208a8000b0015ce3 */
+        /*0148*/         ICMP.NE R3, RZ, 0x64, R2;                  /* 0x3284c00193f0dc23 */
+        /*0150*/         IADD R2, R3, R2;                           /* 0x4800000008309c03 */
+        /*0158*/         I2F.F32.S32 R0, R2;                        /* 0x1800000009201e04 */
+        /*0160*/         ST.E [R4], R0;                             /* 0x9400000000401c85 */
+        /*0168*/         EXIT;                                      /* 0x8000000000001de7 */
+		....................................
+
+
+
+Fatbin ptx code:
+================
+arch = sm_20
+code version = [5,0]
+producer = cuda
+host = linux
+compile_size = 64bit
+compressed
+
+
+
+
+
+
+
+
+.version 5.0
+.target sm_20
+.address_size 64
+
+
+
+.visible .entry _Z11Test_kernelPfS_(
+.param .u64 _Z11Test_kernelPfS__param_0,
+.param .u64 _Z11Test_kernelPfS__param_1
+)
+{
+.reg .pred %p<6>;
+.reg .f32 %f<11>;
+.reg .b32 %r<34>;
+.reg .b64 %rd<10>;
+
+
+ld.param.u64 %rd4, [_Z11Test_kernelPfS__param_0];
+ld.param.u64 %rd3, [_Z11Test_kernelPfS__param_1];
+mov.u32 %r13, %ntid.x;
+mov.u32 %r14, %ctaid.x;
+mov.u32 %r15, %tid.x;
+mad.lo.s32 %r16, %r13, %r14, %r15;
+cvt.s64.s32	%rd1, %r16;
+cvta.to.global.u64 %rd5, %rd4;
+mul.wide.s32 %rd6, %r16, 4;
+add.s64 %rd2, %rd5, %rd6;
+ld.global.f32 %f1, [%rd2];
+cvt.rzi.s32.f32	%r28, %f1;
+ld.global.f32 %f2, [%rd2+4];
+cvt.rzi.s32.f32	%r29, %f2;
+setp.lt.s32	%p1, %r28, %r29;
+@%p1 bra BB0_1;
+bra.uni BB0_3;
+
+BB0_1:
+mov.u32 %r30, %r28;
+mov.u32 %r32, %r29;
+
+BB0_2:
+mov.u32 %r8, %r30;
+add.s32 %r30, %r8, 1;
+or.b32 %r32, %r32, %r8;
+setp.lt.s32	%p4, %r30, %r32;
+mov.u32 %r28, %r32;
+mov.u32 %r29, %r30;
+@%p4 bra BB0_2;
+bra.uni BB0_6;
+
+BB0_3:
+setp.ge.s32	%p2, %r29, %r28;
+@%p2 bra BB0_6;
+
+mov.u32 %r31, %r28;
+mov.u32 %r33, %r29;
+
+BB0_5:
+mov.u32 %r4, %r33;
+add.s32 %r33, %r4, 1;
+or.b32 %r31, %r31, %r4;
+setp.lt.s32	%p3, %r33, %r31;
+mov.u32 %r28, %r31;
+mov.u32 %r29, %r33;
+@%p3 bra BB0_5;
+
+BB0_6:
+cvta.to.global.u64 %rd7, %rd3;
+ld.global.f32 %f3, [%rd2+81920];
+cvt.rn.f32.s32	%f4, %r29;
+add.f32 %f5, %f4, %f3;
+ld.global.f32 %f6, [%rd2+81924];
+cvt.rn.f32.s32	%f7, %r28;
+add.f32 %f8, %f7, %f6;
+add.f32 %f9, %f5, %f8;
+cvt.rzi.s32.f32	%r17, %f9;
+setp.eq.s32	%p5, %r17, 0;
+selp.b32	%r18, 100, 0, %p5;
+add.s32 %r19, %r18, %r17;
+cvt.rn.f32.s32	%f10, %r19;
+shl.b64 %rd8, %rd1, 2;
+add.s64 %rd9, %rd7, %rd8;
+st.global.f32 [%rd9], %f10;
+ret;
+}
+
+

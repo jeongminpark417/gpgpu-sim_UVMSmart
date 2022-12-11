@@ -32,18 +32,55 @@
 /* Can switch DATA_TYPE between float and double */
 typedef float DATA_TYPE;
 
+#define clock_value_t  long long;
+
+__device__ void c_sleep(long long sleep_cycles)
+{
+    long long start = clock64();
+    long long cycles_elapsed;
+    do { cycles_elapsed = clock64() - start; } 
+    while (cycles_elapsed < sleep_cycles);
+}
+
 __global__ void Test_kernel(DATA_TYPE *A, DATA_TYPE *B)
 {
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	int a1 = A[i];
+	int a2 = A[i+1];
+	
+//	if(threadIdx.x != 0) return;
 
-	B[i] = A[i];	
+	if(a1 < a2){
+		for(int k = a1; a1 < a2; a1++){
+			a2 = (a1 | a2);
+		}
+	}
+	else{
+		int a3 = a1;
+		a1 = a2;
+		a2 = a3;
+		for(int k = a1; a1 < a2; a1++){ 
+			a2 = (a1 | a2); 
+		}
+	}
+	int temp = (a1 + A[i]) + (a2 + A[i + 1]);	
+	int x = 0;
+	for(int k = 0; k < 100; k++){
+		if ((temp)  == 0) x++;	
+	}	
+	B[i] =temp + x;
+
+
+//c_sleep(10000);	
+
+	
 }
 
 
 void Test(DATA_TYPE* A, DATA_TYPE* B)
 {
 	
-	Test_kernel<<<10, 64>>>(A, B);
+	Test_kernel<<<10, 32>>>(A, B);
 
 	cudaDeviceSynchronize();
 }
@@ -54,8 +91,8 @@ int main(int argc, char *argv[])
 	DATA_TYPE* A;
 	DATA_TYPE* B;  
 
-	cudaMallocManaged( &A, NI*NJ*sizeof(DATA_TYPE) );
-	cudaMallocManaged( &B, NI*NJ*sizeof(DATA_TYPE) );
+	cudaMallocManaged( &A, 2*NI*NJ*sizeof(DATA_TYPE) );
+	cudaMallocManaged( &B, 2*NI*NJ*sizeof(DATA_TYPE) );
 
 	Test(A, B);
 	

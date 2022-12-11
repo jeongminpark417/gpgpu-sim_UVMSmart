@@ -16,24 +16,75 @@
 .param .u64 _Z11Test_kernelPfS__param_1
 )
 {
-.reg .f32 %f<2>;
-.reg .b32 %r<5>;
-.reg .b64 %rd<8>;
+.reg .pred %p<6>;
+.reg .f32 %f<9>;
+.reg .b32 %r<34>;
+.reg .b64 %rd<10>;
 
 
-ld.param.u64 %rd1, [_Z11Test_kernelPfS__param_0];
+ld.param.u64 %rd3, [_Z11Test_kernelPfS__param_0];
 ld.param.u64 %rd2, [_Z11Test_kernelPfS__param_1];
-cvta.to.global.u64 %rd3, %rd2;
-cvta.to.global.u64 %rd4, %rd1;
-mov.u32 %r1, %ctaid.x;
-mov.u32 %r2, %ntid.x;
-mov.u32 %r3, %tid.x;
-mad.lo.s32 %r4, %r2, %r1, %r3;
-mul.wide.s32 %rd5, %r4, 4;
+mov.u32 %r13, %ntid.x;
+mov.u32 %r14, %ctaid.x;
+mov.u32 %r15, %tid.x;
+mad.lo.s32 %r16, %r13, %r14, %r15;
+cvt.s64.s32	%rd1, %r16;
+cvta.to.global.u64 %rd4, %rd3;
+mul.wide.s32 %rd5, %r16, 4;
 add.s64 %rd6, %rd4, %rd5;
 ld.global.f32 %f1, [%rd6];
-add.s64 %rd7, %rd3, %rd5;
-st.global.f32 [%rd7], %f1;
+cvt.rzi.s32.f32	%r28, %f1;
+ld.global.f32 %f2, [%rd6+4];
+cvt.rzi.s32.f32	%r29, %f2;
+setp.lt.s32	%p1, %r28, %r29;
+@%p1 bra BB0_1;
+bra.uni BB0_3;
+
+BB0_1:
+mov.u32 %r30, %r28;
+mov.u32 %r32, %r29;
+
+BB0_2:
+mov.u32 %r8, %r30;
+add.s32 %r30, %r8, 1;
+or.b32 %r32, %r32, %r8;
+setp.lt.s32	%p4, %r30, %r32;
+mov.u32 %r28, %r32;
+mov.u32 %r29, %r30;
+@%p4 bra BB0_2;
+bra.uni BB0_6;
+
+BB0_3:
+setp.ge.s32	%p2, %r29, %r28;
+@%p2 bra BB0_6;
+
+mov.u32 %r31, %r28;
+mov.u32 %r33, %r29;
+
+BB0_5:
+mov.u32 %r4, %r33;
+add.s32 %r33, %r4, 1;
+or.b32 %r31, %r31, %r4;
+setp.lt.s32	%p3, %r33, %r31;
+mov.u32 %r28, %r31;
+mov.u32 %r29, %r33;
+@%p3 bra BB0_5;
+
+BB0_6:
+cvta.to.global.u64 %rd7, %rd2;
+cvt.rn.f32.s32	%f3, %r29;
+add.f32 %f4, %f3, %f1;
+cvt.rn.f32.s32	%f5, %r28;
+add.f32 %f6, %f5, %f2;
+add.f32 %f7, %f4, %f6;
+cvt.rzi.s32.f32	%r17, %f7;
+setp.eq.s32	%p5, %r17, 0;
+selp.b32	%r18, 100, 0, %p5;
+add.s32 %r19, %r18, %r17;
+cvt.rn.f32.s32	%f8, %r19;
+shl.b64 %rd8, %rd1, 2;
+add.s64 %rd9, %rd7, %rd8;
+st.global.f32 [%rd9], %f8;
 ret;
 }
 
