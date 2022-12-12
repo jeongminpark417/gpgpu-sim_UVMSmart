@@ -645,6 +645,8 @@ public:
    struct lp_tree_node* build_lp_tree(mem_addr_t addr, size_t size);
    void reset_large_page_info(struct lp_tree_node* node);
    void reset_lp_tree_node(struct lp_tree_node* node);
+   void reset_lp_tree_node_counter(struct lp_tree_node* node);
+   
    struct lp_tree_node* get_lp_node(mem_addr_t addr);
    void evict_whole_tree(struct lp_tree_node *root);
    mem_addr_t update_basic_block(struct lp_tree_node *root, mem_addr_t addr, size_t size, bool prefetch);
@@ -683,6 +685,10 @@ public:
    mem_addr_t get_eviction_base_addr(mem_addr_t page_addr);
    size_t get_eviction_granularity(mem_addr_t page_addr);
 
+   bool get_spatial_flag(struct lp_tree_node *node, mem_addr_t addr);
+   bool get_temporal_flag(struct lp_tree_node *node, mem_addr_t addr); 
+   void set_flags(struct lp_tree_node *node, mem_addr_t addr, bool s_flag, bool t_flag);
+
    int get_bb_access_counter(struct lp_tree_node *node, mem_addr_t addr);
    int get_bb_round_trip(struct lp_tree_node *node, mem_addr_t addr);
    void inc_bb_access_counter(mem_addr_t addr);
@@ -694,6 +700,14 @@ public:
    void update_access_type(mem_addr_t addr, int type);
 
    bool should_cause_page_migration(mem_addr_t addr, bool is_write);
+
+
+   int spatial_count = 0;
+   int temporal_count = 0;
+   int t_static_threshold = 2;
+   int s_static_threshold = 16;
+ 
+
 private:
    // data structure to wrap memory fetch and page table walk delay
    struct page_table_walk_latency_t {
@@ -825,6 +839,9 @@ struct lp_tree_node {
     struct lp_tree_node *right;
     uint32_t access_counter;
     uint8_t  RW;
+
+    bool spatial_flag;
+    bool temporal_flag;
 };
 
 class gpgpu_sim : public gpgpu_t {

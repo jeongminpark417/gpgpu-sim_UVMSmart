@@ -200,6 +200,8 @@ public:
    virtual float			get_projected_occupancy(size_t read_stage_queue_size, size_t write_stage_queue_size, float eviction_buffer_percentage) = 0;
 
    virtual void				reset() = 0;
+
+
 };
 
 template<unsigned BSIZE> class memory_space_impl : public memory_space {

@@ -2165,6 +2165,7 @@ bool gmmu_t::is_block_evictable(mem_addr_t addr, size_t size)
 
 void gmmu_t::page_eviction_procedure()
 {
+
     sort_valid_pages();
 
     std::list<std::pair<mem_addr_t, size_t> > evicted_pages;
@@ -2187,7 +2188,7 @@ void gmmu_t::page_eviction_procedure()
             evicted_pages.push_back( std::make_pair( page_addr, m_config.page_size) );
         }
     } else if ( evict_policy == eviction_policy::LRU || evict_policy == eviction_policy::LFU || m_config.page_size == MAX_PREFETCH_SIZE ) {
-        // in lru, only evict the least recently used pages at the front of accessed pages queue
+	 // in lru, only evict the least recently used pages at the front of accessed pages queue
         // in lfu, only evict the page accessed least number of times from the front of accessed pages queue
         std::list<eviction_t *>::iterator iter = valid_pages.begin();
         std::advance( iter, eviction_start );
@@ -2199,12 +2200,58 @@ void gmmu_t::page_eviction_procedure()
         if ( iter != valid_pages.end() ) {
             mem_addr_t page_addr = (*iter)->addr;
             struct lp_tree_node *root = get_lp_node(page_addr);
-            evict_whole_tree(root);
+          
+	    std::cout << "evicted addr: " << page_addr << std::endl;
+	    bool s_flag = get_spatial_flag(root, page_addr);
+	    bool t_flag = get_temporal_flag(root, page_addr);	            
+
+	    std::cout << "s_flag: " << s_flag << std::endl;
+	    std::cout << "t_flag: " << t_flag << std::endl; 
+
+	    if(s_flag) spatial_count++;
+	    if(t_flag) temporal_count++;
+		
+	    //update for every 100 counts;
+	    //ECE511
+	    if(spatial_count + temporal_count > 100){
+		
+		if(abs(spatial_count - temporal_count) > 5){
+
+			if(spatial_count > temporal_count){
+				//when spatial shows better perf
+				if(s_static_threshold > 0) s_static_threshold--;	
+				//subcount
+				//based on the differnt (subcoutn static > fix)
+
+			}
+				
+			else{
+				//when temporal shows better perf
+				if(t_static_threshold > 0) t_static_threshold--;
+					
+			}
+		}
+	
+
+ 	
+		 spatial_count = 0;
+		 temporal_count = 0;
+		 reset_lp_tree_node_counter(root);	
+	
+	     }
+	    
+	    	    
+            
+           		    
+
+	 
+
+	    evict_whole_tree(root);
 
             evicted_pages.push_back( std::make_pair( root->addr, root->size) );
         }
     } else if ( evict_policy == eviction_policy::RANDOM ) {
-        // in random eviction, select a random page
+	// in random eviction, select a random page
 	std::list<eviction_t *>::iterator iter = valid_pages.begin();
         std::advance( iter, eviction_start + (rand() % (int)(valid_pages.size() * (1 - m_config.reserve_accessed_page_percent / 100))) );
 
@@ -2215,7 +2262,14 @@ void gmmu_t::page_eviction_procedure()
         if ( iter != valid_pages.end() ) {
             mem_addr_t page_addr = (*iter)->addr;
             struct lp_tree_node *root = get_lp_node(page_addr);
-            update_basic_block(root, page_addr, m_config.page_size, false);
+	    std::cout << "evicted addr: " << page_addr << std::endl;
+	    bool s_flag = get_spatial_flag(root, page_addr);
+	    bool t_flag = get_temporal_flag(root, page_addr);	            
+
+	    std::cout << "s_flag: " << s_flag << std::endl;
+	    std::cout << "t_flag: " << t_flag << std::endl; 
+
+	    update_basic_block(root, page_addr, m_config.page_size, false);
 
             evicted_pages.push_back( std::make_pair(page_addr, m_config.page_size) );
         }
@@ -2846,6 +2900,19 @@ void gmmu_t::reset_lp_tree_node(struct lp_tree_node* node)
     }
 }
 
+//ECE511
+
+void gmmu_t::reset_lp_tree_node_counter(struct lp_tree_node* node)
+{
+    node->access_counter = 0;
+    
+    if (node->size != MIN_PREFETCH_SIZE) {
+        reset_lp_tree_node_counter(node->left);
+        reset_lp_tree_node_counter(node->right);
+    }
+}
+
+
 void gmmu_t::reset_large_page_info()
 {
      for ( std::list<struct lp_tree_node*>::iterator iter = large_page_info.begin(); iter != large_page_info.end(); iter++ ) {
@@ -2905,6 +2972,47 @@ void gmmu_t::update_access_type(mem_addr_t addr, int type)
 
    node->RW |= type;
 }
+
+bool gmmu_t::get_spatial_flag(struct lp_tree_node *node, mem_addr_t addr){
+   while (node->size != MIN_PREFETCH_SIZE) {
+       if (node->left->addr <= addr && addr < node->left->addr + node->left->size) {
+           node = node->left;
+       } else { 
+           node = node->right;
+       }
+   }
+   
+   return node->spatial_flag;
+	
+}
+bool gmmu_t::get_temporal_flag(struct lp_tree_node *node, mem_addr_t addr){
+   while (node->size != MIN_PREFETCH_SIZE) {
+       if (node->left->addr <= addr && addr < node->left->addr + node->left->size) {
+           node = node->left;
+       } else { 
+           node = node->right;
+       }
+   }
+   
+   return node->temporal_flag;
+	
+}
+
+
+void gmmu_t::set_flags(struct lp_tree_node *node, mem_addr_t addr, bool s_flag, bool t_flag){
+   while (node->size != MIN_PREFETCH_SIZE) {
+       if (node->left->addr <= addr && addr < node->left->addr + node->left->size) {
+           node = node->left;
+       } else { 
+           node = node->right;
+       }
+   }
+   node->spatial_flag = s_flag;
+   node->temporal_flag = t_flag;
+	
+}
+
+
 
 int gmmu_t::get_bb_access_counter(struct lp_tree_node *node, mem_addr_t addr)
 {  
@@ -3225,7 +3333,6 @@ void gmmu_t::cycle()
 
 	        // this page request is created by core on page fault and not part of a prefetch
 	        if ( req_info.find(*iter) != req_info.end()) {
-
 	            page_finsihed_for_mf.push_back(*iter);
 
                     // for all memory fetches that were waiting for this page, should be replayed back for cache access 
@@ -3248,7 +3355,6 @@ void gmmu_t::cycle()
 	} else if (pcie_read_latency_queue->type == latency_type::PAGE_FAULT) { // processed far-fault is returned to upward queue
 
 	    if(sim_prof_enable) {
-        	printf("sim prof enable\n");
 	       for(std::list<event_stats*>::iterator iter = fault_stats.begin(); iter != fault_stats.end(); iter++) {
                    if( ((page_fault_stats*)(*iter))->transfering_pages.front() == pcie_read_latency_queue->page_list.front() ) {
 		       event_stats* mf_fault = *iter;
@@ -3385,9 +3491,9 @@ void gmmu_t::cycle()
 		     //ECE511
 		     active_mask_t warp_mask = mf->get_mem_access().get_warp_mask();
 		     std::cout << "active mask: " << warp_mask << std::endl;
-		
-		     int s_static_threshold = 16;
-		     int t_static_threshold = 2;
+		     std::cout << "free pages: " << m_gpu->get_global_memory()->get_free_pages() << std::endl;
+		    //int s_static_threshold = 16;
+		    // int t_static_threshold = 2;
 
 		     bool spatial_local_flag = false;
 		     if(warp_mask.count() >= s_static_threshold)
@@ -3396,8 +3502,8 @@ void gmmu_t::cycle()
 		     bool temporal_local_flag = false;
 		     mem_addr_t addr = mf->get_mem_access().get_addr();
 		     struct lp_tree_node *root = m_gpu->getGmmu()->get_lp_node(addr);
-			std::cout << "counter val: " << get_bb_access_counter(root, addr) << std::endl;
-		     if(get_bb_access_counter(root, addr) >= 4)
+//			std::cout << "counter val: " << get_bb_access_counter(root, addr) << std::endl;
+		     if(get_bb_access_counter(root, addr) >= t_static_threshold)
 			temporal_local_flag = true;
 		
 
@@ -3405,8 +3511,8 @@ void gmmu_t::cycle()
 			 
 			// if(spatial_local_flag == false) printf("no spatial\n");
 			 //if(temporal_local_flag == false) printf("no temporal\n");
-	
-			 m_new_stats->num_dma++;
+
+		         m_new_stats->num_dma++;
                          pcie_latency_t *p_t = new pcie_latency_t();
 
                          mf->set_dma();
@@ -3418,30 +3524,38 @@ void gmmu_t::cycle()
                 
 		     }    
 		     else{
+			std::cout << "addr: " << addr << std::endl;	
+			set_flags(root, addr, spatial_local_flag, temporal_local_flag);			
+			
 			//if(spatial_local_flag == true) printf("spatial locality\n");
 			//if(temporal_local_flag == true) printf("temporal locality\n");
-	
-	
+
+//			printf("locality\n");
 			pcie_latency_t* f_t = new pcie_latency_t();
                         //:f_t->page_list.push_back(*pf_iter);
-                        f_t->type = latency_type::PAGE_FAULT;
+                        f_t -> page_list.push_back(addr);
+			f_t->type = latency_type::PAGE_FAULT;
                         pcie_read_stage_queue.push_back(f_t);
+
 /*
+		        printf("pcie\n");
 			pcie_latency_t* p_t = new pcie_latency_t();
-                    p_t->start_addr = m_gpu->get_global_memory()->get_mem_addr(all_pg_iter->front());
-                    p_t->page_list = std::list<mem_addr_t> (all_pg_iter->begin(), ++pg_iter);
-                    p_t->size = p_t->page_list.size() * m_config.page_size;
-	            p_t->type = latency_type::PCIE_READ;			
+                        p_t->start_addr = addr;
+//                    p_t->page_list = std::list<mem_addr_t> (all_pg_iter->begin(), ++pg_iter);
+	                p_t->page_list = std::list<mem_addr_t> (addr);      
+			p_t->size = p_t->page_list.size() * m_config.page_size;
+	              	p_t->type = latency_type::PCIE_READ;			
  
-	            pcie_read_stage_queue.push_back(p_t);
-*/
-	
+	              	pcie_read_stage_queue.push_back(p_t);
+			printf("PCIE READ\n");
+*/	
 			if ( dma_mode != dma_type::DISABLED && mf->get_mem_access().get_type() == GLOBAL_ACC_W) {
 		             m_new_stats->dma_page_transfer_write++;
 			 } 
 			else if( dma_mode != dma_type::DISABLED && mf->get_mem_access().get_type() == GLOBAL_ACC_R) {
 			     m_new_stats->dma_page_transfer_read++;
 			 }
+	//		printf("page fault\n");
 			 page_fault_this_turn[page_list.front()].push_back(mf);
 		     }		
 
@@ -3486,6 +3600,7 @@ void gmmu_t::cycle()
     // fetch from cluster's cu to gmmu queue and push it into the page table way delay queue
     for (unsigned i=0; i<m_shader_config->n_simt_clusters; i++) {
 
+//	printf("cu add\n");
         if(!(m_gpu->getSIMTCluster(i))->empty_cu_gmmu_queue()) {
 
             mem_fetch* mf = (m_gpu->getSIMTCluster(i))->front_cu_gmmu_queue();
@@ -3498,133 +3613,6 @@ void gmmu_t::cycle()
 
             (m_gpu->getSIMTCluster(i))->pop_cu_gmmu_queue();
         }
-    }
-
-    // check if there is an active outstanding prefetch request
-    if( !prefetch_req_buffer.empty() && prefetch_req_buffer.front().active) {
-
-	prefetch_req& pre_q = prefetch_req_buffer.front();
-
-        // schedule for page transfers from the active prefetch request when there is no pending transfer for the same
-        // can be the very first time or a scheduled big chunk of pages (2MB) is finsihed just now
-	if ( pre_q.pending_prefetch.empty() ) {
-
-	     // case when the last schedule finished, it is not the first time
-	     if( pre_q.cur_addr > pre_q.start_addr ) {
-
-		 if(sim_prof_enable) {
-		 	update_sim_prof_prefetch_break_down(gpu_sim_cycle + gpu_tot_sim_cycle);
-		 }
-
-		 m_new_stats->pf_fault_latency.back().second = gpu_sim_cycle+gpu_tot_sim_cycle-m_new_stats->pf_fault_latency.back().second;
-
-		 // all the memory fetches created by core on page fault were aggreagted earlier
-                 // now they are replayed back together to the core
-	         for( map<mem_addr_t, std::list<mem_fetch*> >::iterator iter = pre_q.outgoing_replayable_nacks.begin();
-		      iter != pre_q.outgoing_replayable_nacks.end(); iter++) {
-
-		      for(std::list<mem_fetch*>::iterator iter2 = iter->second.begin();
-			  iter2 != iter->second.end(); iter2++) {
-
-		      	  mem_fetch* mf = *iter2;
-                        
-		          simt_cluster_id = mf->get_sid() / m_config.num_core_per_cluster();
-		          // push them to the upward queue to replay them back to the corresponding core in bulk
-                          (m_gpu->getSIMTCluster(simt_cluster_id))->push_gmmu_cu_queue(mf);
-		      }
-	    	 }
-		 pre_q.outgoing_replayable_nacks.clear();
-	     }
-	    
-             // all the memory fetches have been replayed and
-	     // the prefetch request is completed entirely
-             // now signal the stream that the operation is finished so that it can schedule something else 
-	     if( pre_q.cur_addr == pre_q.start_addr + pre_q.size ) {
-
-	    	 pre_q.m_stream->record_next_done();
-
-		 if(sim_prof_enable) {
-		 	update_sim_prof_prefetch(pre_q.start_addr, pre_q.size, gpu_sim_cycle + gpu_tot_sim_cycle);
-		 }
-
-	    	 prefetch_req_buffer.pop_front();
-		 return ;
-	     }
-	  
-	     mem_addr_t start_addr = 0;
-
-             pcie_latency_t *p_t = new pcie_latency_t();
- 
-	     // break the loop if 
-             //  Case 1: reach the end of this prefetch
-             //  Case 2: it reaches the 2MB line from starting of the allocation
-             //  Case 3: it encounters a valid page in between
-	     do {
-                    // get the page number for the current updated address
-		    mem_addr_t page_num = m_gpu->get_global_memory()->get_page_num(pre_q.cur_addr);
-                    // update the current address by page size as we break a big chunk (2MB) 
-                    // in the granularity of the smallest unit of page
-	            pre_q.cur_addr += m_config.page_size;
-
-		    // check for Case 3, i.e., we encounter a valid page
-		    if(  m_gpu->get_global_memory()->is_valid( page_num ) ) {
-
-			 m_new_stats->pf_page_hit++;
-
-			 // check if this page is currently written back
-			 check_write_stage_queue(page_num, false);
-
-			 // break out of loop only when we have already scheduled some pages for transfer
-                         // if not we will continue skipping valid pages if any until we find some invalid pages to transfer
-                         if( !pre_q.pending_prefetch.empty() ) { 
-				break;
-                     	 }    
-		    } else {
-
-			 m_new_stats->pf_page_miss++;
-
-                         // remember this page as pending under the prefetch request
-		         pre_q.pending_prefetch.push_back(page_num);
-			
-			 if(start_addr == 0) {
-				start_addr = m_gpu->get_global_memory()->get_mem_addr(page_num);
-				p_t->start_addr = pre_q.cur_addr;	
-			 }
-  
-			 // just create a placeholder in MSHR for the memory fetches created by core on page fault
-                         // later in the time so that they go to outgoing replayable nacks, rather than incoming 
-			 req_info[page_num];
-
-			 // incoming nacks hold the list of page faults for the transfer which has not been scheduled yet
-                         // so instead of pushing them to MSHR and then again getting back to the outgoing list
-                         // directly switch between the incoming and outgoing list of replayable nacks
-			 if ( pre_q.incoming_replayable_nacks.find(page_num) != pre_q.incoming_replayable_nacks.end() ) {
-			      pre_q.outgoing_replayable_nacks[page_num].merge(pre_q.incoming_replayable_nacks[page_num]);
-			      pre_q.incoming_replayable_nacks.erase( page_num );
-			 }
-
-			 // schedule this page as it is not valid to the read stage queue
-                         p_t->page_list.push_back(page_num);
-			 m_new_stats->pf_page_fault_latency[page_num].push_back(gpu_sim_cycle+gpu_tot_sim_cycle);
-                    }
-		    
-	     } while( pre_q.cur_addr != (pre_q.start_addr + pre_q.size) && // check for Case 1, i.e., we reached the end of prefetch request
-                      ((unsigned long long)(pre_q.cur_addr - pre_q.allocation_addr)) % ((unsigned long long)MAX_PREFETCH_SIZE) ); // Case 2: allowing maximum transfer size as huge page size of 2MB
- 
-             if ( !p_t->page_list.empty() ) {
-		 p_t->size = p_t->page_list.size() * m_config.page_size; 
-		 p_t->type = latency_type::PCIE_READ; 
-                 pcie_read_stage_queue.push_back(p_t);
-             }
-
-	     m_new_stats->pf_fault_latency.push_back( std::make_pair(pre_q.pending_prefetch.size() * m_config.page_size, gpu_sim_cycle+gpu_tot_sim_cycle) );
-
-	     if(sim_prof_enable && !pre_q.pending_prefetch.empty() ) {
-		 event_stats* cp_pref_bd = new memory_stats(prefetch_breakdown, gpu_sim_cycle+gpu_tot_sim_cycle, start_addr,
-							    pre_q.pending_prefetch.size() * m_config.page_size, pre_q.m_stream->get_uid() );
-                 sim_prof[gpu_sim_cycle+gpu_tot_sim_cycle].push_back(cp_pref_bd); 
-	     }
-	} 
     }
 }
 
