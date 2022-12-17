@@ -704,8 +704,8 @@ public:
 
    int spatial_count = 0;
    int temporal_count = 0;
-   int t_static_threshold = 2;
-   int s_static_threshold = 16;
+   int t_static_threshold = 4;
+   int s_static_threshold = 8;
  
 
 private:

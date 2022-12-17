@@ -1,0 +1,127 @@
+64bit elf: type=2, abi=7, sm=20, toolkit=80, flags = 0x140514
+Sections:
+Index Offset   Size ES Align   Type   Flags Link     Info Name
+    1     40     d7  0  1    STRTAB       0    0        0 .shstrtab
+    2    117    142  0  1    STRTAB       0    0        0 .strtab
+    3    260     90 18  8    SYMTAB       0    2        4 .symtab
+    4    2f0     24  0  4 CUDA_INFO       0    3        0 .nv.info
+    5    314     48  0  4 CUDA_INFO       0    3        8 .nv.info._Z11Test_kernelPiS_S_
+    6    35c      4  0  4  PROGBITS       2    0        8 .nv.constant16._Z11Test_kernelPiS_S_
+    7    360     38  0  4  PROGBITS       2    0        8 .nv.constant0._Z11Test_kernelPiS_S_
+    8    398    240  0  4  PROGBITS  100006    3 10000005 .text._Z11Test_kernelPiS_S_
+    9    5d8      4  0  4    NOBITS       3    0        8 .nv.shared._Z11Test_kernelPiS_S_
+
+.section .strtab
+
+.section .shstrtab
+
+.section .symtab
+ index           value           size      info    other  shndx    name  
+   0               0               0        0        0      0     (null)
+   1               0               0        3        0      8     .text._Z11Test_kernelPiS_S_
+   2               0               0        3        0      9     .nv.shared._Z11Test_kernelPiS_S_
+   3               0               0        3        0      6     .nv.constant16._Z11Test_kernelPiS_S_
+   4               0               0        3        0      7     .nv.constant0._Z11Test_kernelPiS_S_
+   5               0             576       12       10      8     _Z11Test_kernelPiS_S_
+
+
+.nv.constant16._Z11Test_kernelPiS_S_
+0x00200000  
+
+
+.nv.constant0._Z11Test_kernelPiS_S_
+0x00000000  0x00000000  0x00000000  0x00000000  0x00000000  
+0x00000000  0x00000000  0x00000000  0x00000000  
+0x00000000  0x00000000  0x00000000  0x00000000  
+0x00000000  
+
+
+.nv.shared._Z11Test_kernelPiS_S_
+   No data to be dumped. 
+
+
+.nv.info
+	<0x1>
+	Attribute:	EIATTR_MAX_STACK_SIZE
+	Format:	EIFMT_SVAL
+	Value:	0x5 0x0 
+	<0x2>
+	Attribute:	EIATTR_MIN_STACK_SIZE
+	Format:	EIFMT_SVAL
+	Value:	function: _Z11Test_kernelPiS_S_(0x5)	min stack size: 0x0
+	<0x3>
+	Attribute:	EIATTR_FRAME_SIZE
+	Format:	EIFMT_SVAL
+	Value:	function: _Z11Test_kernelPiS_S_(0x5)	frame size: 0x0
+
+
+.nv.info._Z11Test_kernelPiS_S_
+	<0x1>
+	Attribute:	EIATTR_PARAM_CBANK
+	Format:	EIFMT_SVAL
+	Value:	0x4 0x180020 
+	<0x2>
+	Attribute:	EIATTR_CBANK_PARAM_SIZE
+	Format:	EIFMT_HVAL
+	Value:	0x18
+	<0x3>
+	Attribute:	EIATTR_KPARAM_INFO
+	Format:	EIFMT_SVAL
+	Value:	Index : 0x0	Ordinal : 0x2	Offset  : 0x10	Size    : 0x8
+		Pointee's logAlignment : 0x0	Space : 0x0	cbank : 0x1f	Parameter Space : CBANK	
+	<0x4>
+	Attribute:	EIATTR_KPARAM_INFO
+	Format:	EIFMT_SVAL
+	Value:	Index : 0x0	Ordinal : 0x1	Offset  : 0x8	Size    : 0x8
+		Pointee's logAlignment : 0x0	Space : 0x0	cbank : 0x1f	Parameter Space : CBANK	
+	<0x5>
+	Attribute:	EIATTR_KPARAM_INFO
+	Format:	EIFMT_SVAL
+	Value:	Index : 0x0	Ordinal : 0x0	Offset  : 0x0	Size    : 0x8
+		Pointee's logAlignment : 0x0	Space : 0x0	cbank : 0x1f	Parameter Space : CBANK	
+	<0x6>
+	Attribute:	EIATTR_CRS_STACK_SIZE
+	Format:	EIFMT_SVAL
+	Value:	0x18 
+
+
+.text._Z11Test_kernelPiS_S_
+bar = 1	reg = 16	lmem=0	smem=4
+0x00005de4  0x28004404  0x94001c04  0x2c000000  
+0x84029c04  0x2c000000  0x10035de2  0x18000000  
+0x4c019e03  0x6000c000  0x3401dc03  0x5800c000  
+0xfca1dc23  0x190e0000  0x28609c03  0x48010000  
+0xfc70dc43  0x48000000  0x78215c03  0x5800c000  
+0xa0211c03  0x201b8000  0x14309c43  0x40000000  
+0xb0215c43  0x48004000  0x00009c03  0x2015c001  
+0x0042dc85  0x84008080  0x00425c85  0x84000000  
+0x0000dc43  0x20fec001  0x78231c03  0x5800c000  
+0x00421c85  0x84010100  0xc0209c03  0x201b8000  
+0x3030dc43  0x40000000  0x00431c85  0x84018180  
+0x00435c85  0x84020200  0xd030dc43  0x48004000  
+0x00239c85  0x84000000  0x24b25c03  0x48000000  
+0x24821c03  0x48000000  0x20c21c03  0x48000000  
+0x20d25c03  0x48000000  0x80021de4  0x28004000  
+0x24e2dc03  0x48000000  0x90025de4  0x28004000  
+0x0022dc85  0x94000000  0x201fdc03  0x20120000  
+0xffffdc04  0x50ee0000  0xa000a1e7  0x40000002  
+0x78628003  0x5800c000  0x8002c1e4  0x28004000  
+0x00820085  0x84000000  0x2871c043  0x40000000  
+0x10618003  0x2017c000  0x9071c043  0x48004000  
+0x04028003  0x200d4000  0x00618085  0x84000000  
+0x0402c043  0x208e4000  0x04030003  0x20154000  
+0x00a28085  0x84000000  0x04034043  0x20964000  
+0x04038003  0x20194000  0x00c24085  0x84000000  
+0x0403c043  0x209a4000  0x00e00085  0x84000000  
+0x20618003  0x48000000  0x18a18003  0x48000000  
+0x18918003  0x48000000  0x18000003  0x48000000  
+0x03f00085  0xc9000000  0xffffdc04  0x50ee0000  
+0x00419c85  0x84008080  0x00401c85  0x84000000  
+0x0041dc85  0x84010100  0x00421c85  0x84018180  
+0x00425c85  0x84020200  0x10229c85  0x84000000  
+0x00601c03  0x48000000  0x00701c03  0x48000000  
+0x00801c03  0x48000000  0x00901c03  0x48000000  
+0x00a01c03  0x48000000  0x10201c85  0x94000000  
+0xffffdc04  0x50ee0000  0x00001de7  0x80000000  
+
+
